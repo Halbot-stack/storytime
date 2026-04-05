@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SubscriberStatus {
+  PENDING_QUIZ
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Subscriber {
+  id                   String           @id @default(cuid())
+  email                String           @unique
+  name                 String?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  quizToken            String           @unique @default(cuid())
+  unsubscribeToken     String           @unique @default(cuid())
+  status               SubscriberStatus @default(PENDING_QUIZ)
+  quizCompletedAt      DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  quizResponse QuizResponse?
+  storyQueue   StoryQueue[]
+}
+
+model QuizResponse {
+  id              String   @id @default(cuid())
+  subscriberId    String   @unique
+  protagonistName String
+  interests       String[]
+  themes          String[]
+  ageGroup        String
+  pronouns        String
+  additionalNotes String?
+  createdAt       DateTime @default(now())
+
+  subscriber Subscriber @relation(fields: [subscriberId], references: [id])
+}
+
+model SourceStory {
+  id           String   @id @default(cuid())
+  title        String
+  author       String
+  genre        String
+  themes       String[]
+  originalText String
+  wordCount    Int
+  createdAt    DateTime @default(now())
+
+  storyQueue StoryQueue[]
+}
+
+model StoryQueue {
+  id               String      @id @default(cuid())
+  subscriberId     String
+  storyNumber      Int
+  scheduledDate    DateTime
+  sentAt           DateTime?
+  sourceStoryId    String?
+  personalizedText String?
+  emailMessageId   String?
+  createdAt        DateTime    @default(now())
+
+  subscriber  Subscriber   @relation(fields: [subscriberId], references: [id])
+  sourceStory SourceStory? @relation(fields: [sourceStoryId], references: [id])
+
+  @@unique([subscriberId, storyNumber])
+}
