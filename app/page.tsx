@@ -88,19 +88,21 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-3">Stories across every genre</h2>
           <p className="text-[var(--muted)] mb-10">
-            Tell us what you love and we&apos;ll match you with the perfect classics.
+            Pick what calls to you — we&apos;ll match you with the perfect classics.
           </p>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-6">
             {genres.map((g) => (
-              <div
+              <Link
                 key={g.label}
-                className="flex flex-col items-center gap-2 p-4 bg-[var(--card)] rounded-xl border border-[var(--border)]"
+                href="/subscribe"
+                className="flex flex-col items-center gap-2 p-4 bg-[var(--card)] rounded-xl border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-md transition-all group cursor-pointer"
               >
-                <span className="text-3xl">{g.icon}</span>
-                <span className="text-sm font-medium text-[var(--muted)]">{g.label}</span>
-              </div>
+                <span className="text-3xl group-hover:scale-110 transition-transform">{g.icon}</span>
+                <span className="text-sm font-medium text-[var(--muted)] group-hover:text-[var(--accent)] transition-colors">{g.label}</span>
+              </Link>
             ))}
           </div>
+          <p className="text-xs text-[var(--muted)] mt-6">Click any genre to get started</p>
         </div>
       </section>
 
