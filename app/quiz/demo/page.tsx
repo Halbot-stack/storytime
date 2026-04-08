@@ -1,6 +1,10 @@
-// Demo version of the quiz — no database required, just shows the flow
+import { Suspense } from 'react'
 import QuizPageInner from '../QuizInner'
 
 export default function QuizDemoPage() {
-  return <QuizPageInner token="demo" isDemo />
+  return (
+    <Suspense>
+      <QuizPageInner token="demo" isDemo />
+    </Suspense>
+  )
 }

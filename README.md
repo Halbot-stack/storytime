@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full-stack subscription website where visitors pay $39/year to receive 12 personalized classic stories delivered to their inbox — one per month for a year. Each story is pulled from famous public domain works (Sherlock Holmes, Grimm's Fairy Tales, O. Henry, H.G. Wells, etc.) and adapted by Claude AI to feature the subscriber's chosen name, interests, and themes.
+A full-stack subscription website where visitors pay $89/year to receive 12 personalized classic stories delivered to their inbox — one per month for a year. Each story is pulled from famous public domain works (Sherlock Holmes, Grimm's Fairy Tales, O. Henry, H.G. Wells, etc.) and adapted by Claude AI to feature the subscriber's chosen name, interests, and themes.
 
 ## Current Status
 
@@ -33,7 +33,7 @@ A full-stack subscription website where visitors pay $39/year to receive 12 pers
 
 ### Story personalization
 - Claude (`claude-sonnet-4-6`) rewrites each public domain story with the subscriber's protagonist name, pronouns, preferred themes, and age-appropriate language
-- ~$0.04 per story, ~$0.48/subscriber/year in AI costs
+- ~$0.04 per story, ~$0.48/subscriber/year in AI costs (margin ~$88.52/subscriber/year)
 
 ### Story library
 12 seeded public domain stories across 6 genres: adventure, mystery, fairy tales, romance, sci-fi, historical. Seed script is at `prisma/seed.ts`.
@@ -45,7 +45,7 @@ A full-stack subscription website where visitors pay $39/year to receive 12 pers
 - **Next.js 14** (App Router) + TypeScript
 - **Tailwind CSS** — custom warm parchment theme, no component library
 - **Prisma v7** + PostgreSQL — NOTE: Prisma v7 requires `@prisma/adapter-pg` — you cannot use `new PrismaClient()` without an adapter
-- **Stripe** — one-time $39/year payment
+- **Stripe** — one-time $89/year payment
 - **Resend** — transactional email (quiz invite, welcome, monthly story delivery)
 - **Anthropic Claude API** — story personalization
 - **Vercel** — hosting + Cron (daily at 9am UTC for story sends)
@@ -75,9 +75,10 @@ These are the remaining steps to go live. Do them in order.
 
 ### Step 3 — Resend email (~10 min)
 1. Sign up at resend.com
-2. Add and verify your sending domain (DNS records — they walk you through it)
-3. Copy API key → `RESEND_API_KEY`
-4. Set `RESEND_FROM_EMAIL` to your verified domain email (e.g. stories@yourdomain.com)
+2. Copy API key → `RESEND_API_KEY`
+3. For local dev testing, no domain needed — emails send from `onboarding@resend.dev`
+4. For production: add and verify your sending domain (DNS records — they walk you through it)
+5. Set `RESEND_FROM_EMAIL` to your verified domain email (e.g. stories@yourdomain.com)
 
 ### Step 4 — Anthropic API key (~2 min)
 1. Go to console.anthropic.com → API Keys → create one
@@ -126,9 +127,17 @@ CRON_SECRET                         # secret for /api/cron/send-stories
 
 ## Testing Without Any Backend
 
-Go to `/subscribe` locally and click **"Skip payment and preview the quiz →"** at the bottom (only visible in development). This takes you through the full quiz flow without needing Stripe, a database, or any API keys.
+Run `npm run dev`, then open `http://localhost:3000`.
 
-Or go directly to `/quiz/demo`.
+In development mode, the subscribe form's **"Continue to Payment"** button skips Stripe entirely and goes straight to `/quiz/demo`. Enter your real email address on the subscribe page and it will be carried through the quiz — when you finish, a summary of your quiz preferences is emailed to you immediately via Resend.
+
+To enable the quiz summary email in dev, add your Resend API key to `.env.local`:
+```
+RESEND_API_KEY="re_..."
+```
+No domain verification is required for dev — emails send from `onboarding@resend.dev` to any address.
+
+Or go directly to `/quiz/demo` to skip the subscribe step (no email will be sent).
 
 ---
 

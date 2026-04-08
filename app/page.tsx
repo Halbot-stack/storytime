@@ -74,11 +74,11 @@ export default function Home() {
               href="/subscribe"
               className="bg-[var(--accent)] text-white px-8 py-4 rounded-full text-lg font-medium hover:opacity-90 transition-opacity"
             >
-              Start Your Subscription — $39/year
+              Start Your Subscription — $89/year
             </Link>
           </div>
           <p className="text-sm text-[var(--muted)] mt-4">
-            Less than $3.25 per story. Cancel anytime.
+            Less than $7.50 per story. Cancel anytime.
           </p>
         </div>
       </section>
@@ -153,7 +153,7 @@ export default function Home() {
             href="/subscribe"
             className="bg-white text-[var(--accent)] px-8 py-4 rounded-full text-lg font-medium hover:opacity-90 transition-opacity inline-block"
           >
-            Subscribe for $39/year
+            Subscribe for $89/year
           </Link>
         </div>
       </section>

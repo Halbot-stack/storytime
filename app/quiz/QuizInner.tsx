@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 // ── question definitions ────────────────────────────────────────────────────
 
@@ -106,6 +106,8 @@ type QuestionId =
 
 export default function QuizPageInner({ token, isDemo = false }: { token: string; isDemo?: boolean }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const demoEmail = isDemo ? (searchParams.get('email') ?? '') : ''
 
   const [question, setQuestion] = useState<QuestionId>('name')
   const [visible, setVisible] = useState(true)
@@ -197,6 +199,25 @@ export default function QuizPageInner({ token, isDemo = false }: { token: string
 
   async function handleSubmit() {
     if (isDemo) {
+      if (demoEmail) {
+        try {
+          await fetch('/api/quiz-demo-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: demoEmail,
+              protagonistName: form.protagonistName.trim(),
+              pronouns: form.pronouns,
+              interests: form.interests,
+              themes: form.themes,
+              ageGroup: form.ageGroup,
+              additionalNotes: form.additionalNotes.trim(),
+            }),
+          })
+        } catch {
+          // non-blocking — proceed to complete page regardless
+        }
+      }
       router.push('/quiz/complete')
       return
     }
