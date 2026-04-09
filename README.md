@@ -65,7 +65,7 @@ These are the remaining steps to go live. Do them in order.
 
 ### Step 2 — Stripe (~15 min)
 1. Sign up at stripe.com
-2. Create a Product: name "Storytime Annual Subscription", $39, one-time payment
+2. Create a Product: name "Storytime Annual Subscription", $89, one-time payment
 3. Copy the Price ID (`price_...`) → `STRIPE_PRICE_ID` in `.env.local`
 4. Copy Secret Key → `STRIPE_SECRET_KEY`
 5. Copy Publishable Key → `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
@@ -131,11 +131,12 @@ Run `npm run dev`, then open `http://localhost:3000`.
 
 In development mode, the subscribe form's **"Continue to Payment"** button skips Stripe entirely and goes straight to `/quiz/demo`. Enter your real email address on the subscribe page and it will be carried through the quiz — when you finish, a summary of your quiz preferences is emailed to you immediately via Resend.
 
-To enable the quiz summary email in dev, add your Resend API key to `.env.local`:
+To enable story generation and delivery in dev, add both keys to `.env.local`:
 ```
 RESEND_API_KEY="re_..."
+ANTHROPIC_API_KEY="sk-ant-..."
 ```
-No domain verification is required for dev — emails send from `onboarding@resend.dev` to any address.
+No domain verification is required for dev — emails send from `onboarding@resend.dev` to any address. When you finish the quiz, Claude personalizes a story matched to your genre and theme picks and emails it to you immediately (~10–15 seconds to generate).
 
 Or go directly to `/quiz/demo` to skip the subscribe step (no email will be sent).
 

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { resend } from '@/lib/resend'
+import { selectStory } from '@/lib/demo-stories'
+import { personalizeStory } from '@/lib/claude'
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL
   ? `${process.env.RESEND_FROM_NAME || 'Storytime'} <${process.env.RESEND_FROM_EMAIL}>`
@@ -11,31 +13,45 @@ export async function POST(req: NextRequest) {
 
   if (!email) return NextResponse.json({ error: 'No email provided' }, { status: 400 })
 
-  const genreLabels: Record<string, string> = {
-    adventure: 'Adventure', mystery: 'Mystery', fairy_tale: 'Fairy Tales',
-    romance: 'Romance', sci_fi: 'Sci-Fi', historical: 'Historical',
-  }
-  const themeLabels: Record<string, string> = {
-    friendship: 'Friendship', courage: 'Courage', love: 'Love',
-    discovery: 'Discovery', justice: 'Justice', redemption: 'Redemption',
+  const story = selectStory(interests as string[], themes as string[])
+
+  let storyText: string
+  try {
+    storyText = await personalizeStory({
+      originalText: story.originalText,
+      storyTitle: story.title,
+      storyAuthor: story.author,
+      protagonistName,
+      pronouns,
+      interests: interests as string[],
+      themes: themes as string[],
+      ageGroup,
+    })
+  } catch (err) {
+    console.error('Claude personalization failed:', err)
+    return NextResponse.json({ error: 'Story generation failed' }, { status: 500 })
   }
 
-  const genreList = (interests as string[]).map((g) => genreLabels[g] ?? g).join(', ')
-  const themeList = (themes as string[]).map((t) => themeLabels[t] ?? t).join(', ')
+  // Format story paragraphs as HTML
+  const storyHtml = storyText
+    .split(/\n\n+/)
+    .map((p) => `<p style="margin: 0 0 1.2em 0; line-height: 1.8;">${p.trim()}</p>`)
+    .join('')
 
   const html = `
-    <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2c1810; padding: 32px;">
-      <h1 style="font-size: 24px; margin-bottom: 8px;">📖 Your Storytime preferences</h1>
-      <p style="color: #8b7355; margin-bottom: 24px;">Here's a summary of the quiz you just completed.</p>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7; font-weight: bold; width: 40%;">Hero's name</td><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7;">${protagonistName}</td></tr>
-        <tr><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7; font-weight: bold;">Pronouns</td><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7;">${pronouns}</td></tr>
-        <tr><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7; font-weight: bold;">Genres</td><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7;">${genreList}</td></tr>
-        <tr><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7; font-weight: bold;">Themes</td><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7;">${themeList}</td></tr>
-        <tr><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7; font-weight: bold;">Age group</td><td style="padding: 10px 0; border-bottom: 1px solid #e8d5b7;">${ageGroup}</td></tr>
-        ${additionalNotes ? `<tr><td style="padding: 10px 0; font-weight: bold;">Notes</td><td style="padding: 10px 0;">${additionalNotes}</td></tr>` : ''}
-      </table>
-      <p style="margin-top: 32px; color: #8b7355; font-size: 14px;">Your first personalized story will arrive in your inbox within 24 hours.</p>
+    <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; color: #2c1810; padding: 32px; background: #fdf8f0;">
+      <p style="color: #a07850; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Your personalized story</p>
+      <h1 style="font-size: 28px; margin: 0 0 4px 0;">${story.title}</h1>
+      <p style="color: #8b7355; font-size: 14px; margin: 0 0 32px 0;">Based on ${story.author} · Personalized for ${protagonistName}</p>
+      <hr style="border: none; border-top: 1px solid #e8d5b7; margin-bottom: 32px;" />
+      <div style="font-size: 17px;">
+        ${storyHtml}
+      </div>
+      <hr style="border: none; border-top: 1px solid #e8d5b7; margin-top: 32px; margin-bottom: 24px;" />
+      <p style="color: #8b7355; font-size: 13px; text-align: center; margin: 0;">
+        Your next story arrives on the 1st of next month.<br/>
+        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}" style="color: #a07850;">storytime</a>
+      </p>
     </div>
   `
 
@@ -43,12 +59,12 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: FROM_EMAIL,
       to: email,
-      subject: `📖 Your Storytime preferences — ${protagonistName}'s story journey`,
+      subject: `📖 Your story is here, ${protagonistName}`,
       html,
     })
     return NextResponse.json({ ok: true })
   } catch (err) {
-    console.error('Failed to send quiz summary email:', err)
+    console.error('Failed to send story email:', err)
     return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
   }
 }
